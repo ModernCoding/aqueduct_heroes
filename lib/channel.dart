@@ -19,14 +19,15 @@ class HeroesChannel extends ApplicationChannel {
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final HeroConfig config = HeroConfig(options.configurationFilePath);
+    final ManagedDataModel dataModel = ManagedDataModel.fromCurrentMirrorSystem();
 
-    final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
-        "heroes_user",
-        "password",
-        "localhost",
-        5432,
-        "heroes"
+    final PostgreSQLPersistentStore persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
+        config.database.username,
+        config.database.password,
+        config.database.host,
+        config.database.port,
+        config.database.databaseName
       );
 
     context = ManagedContext(dataModel, persistentStore);
@@ -54,4 +55,11 @@ class HeroesChannel extends ApplicationChannel {
       .linkFunction((request) async {
         return Response.ok({"key": "value"});
       });
+}
+
+
+class HeroConfig extends Configuration {
+  HeroConfig(String path): super.fromFile(File(path));
+
+  DatabaseConfiguration database;
 }
