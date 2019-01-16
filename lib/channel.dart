@@ -1,4 +1,8 @@
-import 'controller/heroes_controller.dart';
+import 'package:aqueduct/managed_auth.dart' show ManagedAuthDelegate;
+import 'package:heroes/controller/heroes_controller.dart' show HeroesController;
+import 'package:heroes/controller/register_controller.dart' show RegisterController;
+import 'package:heroes/model/user.dart' show User;
+
 import 'heroes.dart';
 
 /// This type initializes an application.
@@ -8,6 +12,7 @@ import 'heroes.dart';
 class HeroesChannel extends ApplicationChannel {
   
   ManagedContext context;
+  AuthServer authServer;
 
   /// Initialize services in this method.
   ///
@@ -31,6 +36,9 @@ class HeroesChannel extends ApplicationChannel {
       );
 
     context = ManagedContext(dataModel, persistentStore);
+
+    final ManagedAuthDelegate<User> authStorage = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(authStorage);
   }
 
   /// Construct the request channel.
@@ -47,14 +55,22 @@ class HeroesChannel extends ApplicationChannel {
     
     // ..route('/heroes')
     //   .link(() => HeroesController())
+    ..route('/auth/token')
+      .link(() => AuthController(authServer))
 
     ..route('/heroes/[:id]')
+      .link(() => Authorizer.bearer(authServer))
       .link(() => HeroesController(context))
+
+    ..route('/register')
+      .link(() => RegisterController(context, authServer))
 
     ..route("/example")
       .linkFunction((request) async {
         return Response.ok({"key": "value"});
-      });
+      })
+    
+    ;
 }
 
 
