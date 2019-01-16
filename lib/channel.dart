@@ -59,7 +59,7 @@ class HeroesChannel extends ApplicationChannel {
       .link(() => AuthController(authServer))
 
     ..route('/heroes/[:id]')
-      .link(() => Authorizer.bearer(authServer))
+      // .link(() => Authorizer.bearer(authServer))
       .link(() => HeroesController(context))
 
     ..route('/register')
